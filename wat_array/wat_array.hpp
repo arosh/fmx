@@ -27,6 +27,12 @@
 #include <cassert>
 #include "bit_array.hpp"
 
+#ifdef __GNUC__
+// https://gcc.gnu.org/onlinedocs/gcc/Diagnostic-Pragmas.html#Diagnostic-Pragmas
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#endif
+
 namespace wat_array {
 
 /**
@@ -316,5 +322,9 @@ private:
 
 }
 
+#ifdef __GNUC__
+// https://gcc.gnu.org/onlinedocs/gcc/Diagnostic-Pragmas.html#Diagnostic-Pragmas
+#pragma GCC diagnostic pop
+#endif // __GNUC__
 
 #endif // WASEQ_WASEQ_HPP_
