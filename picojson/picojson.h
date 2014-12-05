@@ -86,6 +86,12 @@ extern "C" {
     #define SNPRINTF snprintf
 #endif
 
+#ifdef __GNUC__
+// https://gcc.gnu.org/onlinedocs/gcc/Diagnostic-Pragmas.html#Diagnostic-Pragmas
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#endif
+
 namespace picojson {
   
   enum {
@@ -1291,11 +1297,16 @@ int main(void)
     ok(v1.is<double>(), "underflowing int is double");
     ok(v1.get<double>() + 9.22337203685478e+18 < 65536, "double value is somewhat correct");
   }
-#endif
+#endif // PICOJSON_USE_INT64
 
   done_testing();
 
   return success ? 0 : 1;
 }
 
-#endif
+#ifdef __GNUC__
+// https://gcc.gnu.org/onlinedocs/gcc/Diagnostic-Pragmas.html#Diagnostic-Pragmas
+#pragma GCC diagnostic pop
+#endif // __GNUC__
+
+#endif // picojson_h
