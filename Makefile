@@ -2,7 +2,7 @@
 
 CXXFLAGS=-std=c++11 -Wall -Wextra -Wshadow -O2 -g
 
-LINK.o=$(LINK.cc)
+LINK.o=$(LINK.cpp)
 
 all: main bwt
 
