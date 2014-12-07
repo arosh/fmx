@@ -196,17 +196,17 @@ next:
   auto spep = fm_index(wt_text, q);
   vector<wat_array::ListResult> res;
   wt_freq.ListModeRange(0, numeric_limits<uint64_t>::max(), spep.first,
-      spep.second, parser.get<int>("number"), res);
+                        spep.second, parser.get<int>("number"), res);
   for (const auto &r : res) {
     if (r.c == datasets.size())
       continue;
     cout << r.freq << '\t' << datasets[r.c][1] << '\t' << datasets[r.c][2]
-      << endl;
+         << endl;
   }
 
-  if(parser.exist("interact")) {
+  if (parser.exist("interact")) {
     cout << "query> ";
-    if(cin >> q) {
+    if (cin >> q) {
       goto next;
     }
   }
