@@ -124,4 +124,15 @@ TEST(BitVector, SelectTest) {
     EXPECT_TRUE(bv.get(12345 - 1));
     EXPECT_EQ(static_cast<uint64_t>(12345 - 1), bv.select(0));
   }
+
+  {
+    BitVector bv(12345);
+    for(int i = 0; i < 12345; ++i) {
+      bv.set(i);
+    }
+    EXPECT_EQ(12345ULL, bv.build());
+    for(int i = 0; i < 12345; ++i) {
+      EXPECT_EQ(static_cast<uint64_t>(i), bv.select(i));
+    }
+  }
 }

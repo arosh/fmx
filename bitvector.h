@@ -4,7 +4,9 @@
 #include <cassert>
 #include <algorithm>
 #include <vector>
+#include <array>
 
+namespace {
 namespace bitvector_private {
 
 typedef uint64_t Index;
@@ -13,13 +15,15 @@ Index ceil(Index a, Index b) { return (a + b - 1) / b; }
 constexpr int kSizeS = 64;
 constexpr int kSizeL = 4;
 
-struct BitVectorBacket {
-  std::vector<uint64_t> B;
-  std::vector<uint16_t> S;
+class BitVectorBacket {
+  std::array<uint64_t, kSizeL> B;
+  std::array<uint16_t, kSizeL> S;
 #ifndef NDEBUG
   bool built;
 #endif
-  BitVectorBacket() : B(kSizeL, 0ULL), S(kSizeL) {
+
+public:
+  BitVectorBacket() {
 #ifndef NDEBUG
     built = false;
 #endif
@@ -97,13 +101,13 @@ struct BitVectorBacket {
     }
     return ret + L;
   }
-};
-
+}; // class BitVectorBacket
 }; // namespace bitvector_private
 
-struct BitVector {
+class BitVector {
   typedef bitvector_private::Index Index;
-  static constexpr Index kSize = bitvector_private::kSizeS * bitvector_private::kSizeL;
+  static constexpr Index kSize =
+      bitvector_private::kSizeS * bitvector_private::kSizeL;
   const Index n;
   std::vector<bitvector_private::BitVectorBacket> backets;
   std::vector<Index> S;
@@ -111,6 +115,7 @@ struct BitVector {
   bool built;
 #endif
 
+public:
   BitVector(Index n_)
       : n(n_), backets(bitvector_private::ceil(n_, kSize)),
         S(bitvector_private::ceil(n_, kSize)) {
@@ -179,4 +184,5 @@ struct BitVector {
     r -= S[L];
     return ret + backet.select(r);
   }
-};
+}; // class BitVector
+} // namespace
