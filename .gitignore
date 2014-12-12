@@ -2,5 +2,6 @@
 main
 bwt
 bitvector
+wavelet_matrix
 bunko/
 cards/
