@@ -3,9 +3,16 @@
 #include <cstdint>
 #include <cassert>
 #include <vector>
+#include <queue>
 
 #include "bitvector.h"
 #include "bit_operation.h"
+
+template <class T> struct ListResult {
+  T c;
+  uint64_t freq;
+  ListResult(const T c_, const uint64_t freq_) : c(c_), freq(freq_) {}
+};
 
 class WaveletMatrix {
   typedef uint64_t Index;
@@ -17,6 +24,9 @@ class WaveletMatrix {
 public:
   inline WaveletMatrix(const int log_sigma_)
       : log_sigma(log_sigma_), Z(log_sigma_) {}
+
+  inline std::vector<BitVector> BV_() { return BV; }
+
   template <class V> void init(const V &vec) {
     n = vec.size();
     BV.reserve(log_sigma);
@@ -90,5 +100,8 @@ public:
     const auto eq_range = equal_range(c, 0, pos);
     return eq_range.second - eq_range.first;
   }
-  inline std::vector<BitVector> BV_() { return BV; }
+  template <class T>
+  std::vector<ListResult<T> > quantile(const Index st, const Index et) {
+    return std::vector<ListResult<T> >();
+  }
 }; // class WaveletMatrix
