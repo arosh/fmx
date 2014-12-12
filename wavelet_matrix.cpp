@@ -32,3 +32,16 @@ TEST(WaveletMatrixTest, RankLessThanTest) {
   EXPECT_EQ(7ULL, wm.rank_lt(3));
   EXPECT_EQ(8ULL, wm.rank_lt(4));
 }
+
+TEST(WaveletMatrixTest, RankTest) {
+  {
+    vector<uint8_t> ary = { 2, 0, 0, 3, 1, 2, 2, 1 };
+    WaveletMatrix wm(8);
+    wm.init(ary);
+    EXPECT_EQ(2ULL, wm.rank(0, 8));
+    EXPECT_EQ(2ULL, wm.rank(1, 8));
+    EXPECT_EQ(3ULL, wm.rank(2, 8));
+    EXPECT_EQ(1ULL, wm.rank(3, 8));
+    EXPECT_EQ(0ULL, wm.rank(4, 8));
+  }
+}
