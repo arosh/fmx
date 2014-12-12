@@ -10,13 +10,13 @@ TEST(BitVectorBacketTest, RankTest) {
   using namespace bitvector_private;
   {
     BitVectorBacket bv;
-    EXPECT_EQ(0, bv.build());
+    EXPECT_EQ(0ULL, bv.build());
   }
 
   {
     BitVectorBacket bv;
     bv.set(0);
-    EXPECT_EQ(1, bv.build());
+    EXPECT_EQ(1ULL, bv.build());
     EXPECT_EQ(0, bv.rank(0));
     EXPECT_EQ(1, bv.rank(1));
   }
@@ -24,7 +24,7 @@ TEST(BitVectorBacketTest, RankTest) {
   {
     BitVectorBacket bv;
     bv.set(1);
-    EXPECT_EQ(1, bv.build());
+    EXPECT_EQ(1ULL, bv.build());
     EXPECT_EQ(0, bv.rank(0));
     EXPECT_EQ(0, bv.rank(1));
     EXPECT_EQ(1, bv.rank(2));
@@ -35,7 +35,7 @@ TEST(BitVectorBacketTest, RankTest) {
     for(int i = 0; i < kSizeS*kSizeL; ++i) {
       bv.set(i);
     }
-    EXPECT_EQ(kSizeS*kSizeL, bv.build());
+    EXPECT_EQ(static_cast<uint64_t>(kSizeS*kSizeL), bv.build());
     for(int i = 0; i < kSizeS*kSizeL; ++i) {
       EXPECT_EQ(i, bv.rank(i));
     }
@@ -61,7 +61,7 @@ TEST(BitVectorBacketTest, SelectTest) {
   {
     BitVectorBacket bv;
     bv.set(kSizeS*kSizeL - 1);
-    EXPECT_EQ(1, bv.build());
+    EXPECT_EQ(1ULL, bv.build());
     EXPECT_TRUE(bv.get(kSizeS*kSizeL - 1));
     EXPECT_EQ(static_cast<uint64_t>(kSizeS*kSizeL - 1), bv.select(0));
   }

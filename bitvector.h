@@ -17,13 +17,14 @@ constexpr int kSizeL = 4;
 
 class BitVectorBacket {
   std::array<uint64_t, kSizeL> B;
-  std::array<uint16_t, kSizeL> S;
+  std::array<uint8_t, kSizeL> S;
 #ifndef NDEBUG
   bool built;
 #endif
 
 public:
   BitVectorBacket() {
+    B.fill(0ULL);
 #ifndef NDEBUG
     built = false;
 #endif
@@ -45,18 +46,18 @@ public:
     const Index b = i % kSizeS;
     return (B[a] >> b) & 1ULL;
   }
-  uint16_t build() {
+  Index build() {
 #ifndef NDEBUG
     built = true;
 #endif
-    uint16_t cur = 0;
+    Index cur = 0;
     for (int i = 0; i < kSizeL; ++i) {
       S[i] = cur;
       cur += __builtin_popcountll(B[i]);
     }
     return cur;
   }
-  uint16_t rank(Index i) const {
+  uint8_t rank(Index i) const {
 #ifndef NDEBUG
     assert(built);
     assert(i < kSizeS * kSizeL);
@@ -64,10 +65,10 @@ public:
     const Index a = i / kSizeS;
     const Index b = i % kSizeS;
     const uint64_t mask = (1ULL << b) - 1;
-    const uint16_t r = S[a] + __builtin_popcountll(B[a] & mask);
+    const uint8_t r = S[a] + __builtin_popcountll(B[a] & mask);
     return r;
   }
-  Index select(uint16_t r) const {
+  Index select(uint8_t r) const {
 #ifndef NDEBUG
     assert(built);
     assert(r < S[kSizeL - 1] + __builtin_popcountll(B[kSizeL - 1]));
