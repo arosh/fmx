@@ -101,7 +101,7 @@ public:
     return eq_range.second - eq_range.first;
   }
   template <class T>
-  std::vector<ListResult<T> > quantile(const Index st, const Index et) {
-    return std::vector<ListResult<T> >();
+  std::vector<ListResult<T>> quantile(const Index st, const Index et) {
+    return std::vector<ListResult<T>>();
   }
 }; // class WaveletMatrix

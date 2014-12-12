@@ -248,5 +248,7 @@ public:
     r -= kSize * L - S[L];
     return ret + backet.select0(r);
   }
-  inline Index select(bool b, Index r) const { return b ? select1(r) : select0(r); }
+  inline Index select(bool b, Index r) const {
+    return b ? select1(r) : select0(r);
+  }
 }; // class BitVector
