@@ -56,25 +56,25 @@ public:
     Index L = st, R = en;
     for (int i = 0; i < log_sigma; ++i) {
       if (!bit_operation::get_bit(c, i)) {
-        if (L == en) {
+        if (L == n) {
           L = Z[i];
         } else {
           L = BV[i].rank0(L);
         }
 
-        if (R == en) {
+        if (R == n) {
           R = Z[i];
         } else {
           R = BV[i].rank0(R);
         }
       } else {
-        if (L == en) {
+        if (L == n) {
           L = n;
         } else {
           L = Z[i] + BV[i].rank1(L);
         }
 
-        if (R == en) {
+        if (R == n) {
           R = n;
         } else {
           R = Z[i] + BV[i].rank1(R);
