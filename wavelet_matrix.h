@@ -2,17 +2,14 @@
 
 #include <cstdint>
 #include <cassert>
+
 #include <vector>
 #include <queue>
+#include <utility>
+#include <tuple>
 
 #include "bitvector.h"
 #include "bit_operation.h"
-
-template <class T> struct ListResult {
-  T c;
-  uint64_t freq;
-  ListResult(const T c_, const uint64_t freq_) : c(c_), freq(freq_) {}
-};
 
 class WaveletMatrix {
   typedef uint64_t Index;
@@ -21,11 +18,38 @@ class WaveletMatrix {
   std::vector<BitVector> BV;
   std::vector<Index> Z;
 
-public:
-  inline WaveletMatrix(const int log_sigma_)
-      : log_sigma(log_sigma_), Z(log_sigma_) {}
+  Index down0(int depth, Index pos) {
+    if (pos == n)
+      return Z[depth];
+    return BV[depth].rank0(pos);
+  }
 
-  inline std::vector<BitVector> BV_() { return BV; }
+  Index down1(int depth, Index pos) {
+    if (pos == n)
+      return n;
+    return Z[depth] + BV[depth].rank1(pos);
+  }
+
+  template <class T>
+  std::pair<Index, Index> equal_range(const T c, const Index st,
+                                      const Index en) {
+    Index L = st, R = en;
+    for (int i = 0; i < log_sigma; ++i) {
+      if (!bit_operation::get_bit(c, i)) {
+        L = down0(i, L);
+        R = down0(i, R);
+      } else {
+        L = down1(i, L);
+        R = down1(i, R);
+      }
+    }
+    return std::make_pair(L, R);
+  }
+
+public:
+  WaveletMatrix(const int log_sigma_) : log_sigma(log_sigma_), Z(log_sigma_) {}
+
+  std::vector<BitVector> BV_() { return BV; }
 
   template <class V> void init(const V &vec) {
     n = vec.size();
@@ -60,48 +84,69 @@ public:
       }
     }
   }
-  template <class T>
-  std::pair<Index, Index> equal_range(const T c, const Index st,
-                                      const Index en) {
-    Index L = st, R = en;
-    for (int i = 0; i < log_sigma; ++i) {
-      if (!bit_operation::get_bit(c, i)) {
-        if (L == n) {
-          L = Z[i];
-        } else {
-          L = BV[i].rank0(L);
-        }
 
-        if (R == n) {
-          R = Z[i];
-        } else {
-          R = BV[i].rank0(R);
-        }
-      } else {
-        if (L == n) {
-          L = n;
-        } else {
-          L = Z[i] + BV[i].rank1(L);
-        }
-
-        if (R == n) {
-          R = n;
-        } else {
-          R = Z[i] + BV[i].rank1(R);
-        }
-      }
-    }
-    return std::make_pair(L, R);
-  }
   template <class T> Index rank_lt(const T c) {
     return equal_range(c, 0, n).first;
   }
+
   template <class T> Index rank(const T c, const Index pos) {
     const auto eq_range = equal_range(c, 0, pos);
     return eq_range.second - eq_range.first;
   }
+
+  template <class T> struct RangeNode {
+    T value;
+    Index st, en;
+    int depth;
+    RangeNode() {}
+    RangeNode(const T value_, const Index st_, const Index en_,
+              const int depth_)
+        : value(value_), st(st_), en(en_), depth(depth_) {}
+    bool operator<(const RangeNode<T> &rhs) const {
+      // std::tieがlvalueを要求する
+      const Index lenL = en - st;
+      const Index lenR = rhs.en - rhs.st;
+      return std::tie(lenL, depth, value) <
+             std::tie(lenR, rhs.depth, rhs.value);
+    }
+  };
+
+  // vector<pair>をソートした時の結果のように返せると良い気がしたけど
+  // 本当にそうでしょうか？
   template <class T>
-  std::vector<ListResult<T>> quantile(const Index st, const Index et) {
-    return std::vector<ListResult<T>>();
+  std::vector<std::pair<Index, T>> topk(const Index st, const Index en,
+                                        const Index k) {
+    using namespace std;
+    assert(st <= en);
+    vector<pair<Index, T>> ret;
+    if (st == en)
+      return ret;
+    priority_queue<RangeNode<T>> que;
+    que.emplace(0, st, en, 0);
+    while (que.empty() == false && ret.size() < k) {
+      RangeNode<T> node = que.top();
+      que.pop();
+      assert(node.st < node.en);
+      if (node.depth == log_sigma) {
+        ret.emplace_back(node.en - node.st, node.value);
+        continue;
+      }
+      RangeNode<T> l;
+      l.value = node.value;
+      l.st = down0(node.depth, node.st);
+      l.en = down0(node.depth, node.en);
+      l.depth = node.depth + 1;
+      if (l.st < l.en)
+        que.emplace(l);
+
+      RangeNode<T> r;
+      r.value = bit_operation::pop_bit(node.value, node.depth);
+      r.st = down1(node.depth, node.st);
+      r.en = down1(node.depth, node.en);
+      r.depth = node.depth + 1;
+      if (r.st < r.en)
+        que.emplace(r);
+    }
+    return ret;
   }
 }; // class WaveletMatrix

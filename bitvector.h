@@ -9,7 +9,7 @@
 namespace bitvector_private {
 
 typedef uint64_t Index;
-Index ceil(Index a, Index b) { return (a + b - 1) / b; }
+inline Index ceil(Index a, Index b) { return (a + b - 1) / b; }
 
 constexpr int kSizeS = 64;
 constexpr int kSizeL = 4;
@@ -22,13 +22,13 @@ class BitVectorBacket {
 #endif
 
 public:
-  inline BitVectorBacket() {
+  BitVectorBacket() {
     B.fill(0ULL);
 #ifndef NDEBUG
     built = false;
 #endif
   }
-  inline void set(Index i) {
+  void set(Index i) {
 #ifndef NDEBUG
     built = false;
     assert(i < kSizeS * kSizeL);
@@ -37,7 +37,7 @@ public:
     const Index b = i % kSizeS;
     B[a] |= 1ULL << b;
   }
-  inline bool get(Index i) const {
+  bool get(Index i) const {
 #ifndef NDEBUG
     assert(i < kSizeS * kSizeL);
 #endif
@@ -45,7 +45,7 @@ public:
     const Index b = i % kSizeS;
     return (B[a] >> b) & 1ULL;
   }
-  inline Index build() {
+  Index build() {
 #ifndef NDEBUG
     built = true;
 #endif
@@ -56,7 +56,7 @@ public:
     }
     return cur;
   }
-  inline uint8_t rank(Index i) const {
+  uint8_t rank(Index i) const {
 #ifndef NDEBUG
     assert(built);
     assert(i < kSizeS * kSizeL);
@@ -67,7 +67,7 @@ public:
     const uint8_t r = S[a] + std::__pop_count(B[a] & mask);
     return r;
   }
-  inline Index select1(uint8_t r) const {
+  Index select1(uint8_t r) const {
 #ifndef NDEBUG
     assert(built);
     assert(r < S[kSizeL - 1] + std::__pop_count(B[kSizeL - 1]));
@@ -101,7 +101,7 @@ public:
     }
     return ret + L;
   }
-  inline Index select0(uint8_t r) const {
+  Index select0(uint8_t r) const {
 #ifndef NDEBUG
     assert(built);
     assert(r + rank(kSizeS * kSizeL - 1) < kSizeS * kSizeL);
@@ -150,14 +150,14 @@ class BitVector {
 #endif
 
 public:
-  inline BitVector(Index n_)
+  BitVector(Index n_)
       : n(n_), backets(bitvector_private::ceil(n_, kSize)),
         S(bitvector_private::ceil(n_, kSize)) {
 #ifndef NDEBUG
     built = false;
 #endif
   }
-  inline Index build() {
+  Index build() {
 #ifndef NDEBUG
     built = true;
 #endif
@@ -168,7 +168,7 @@ public:
     }
     return cur;
   }
-  inline void set(Index i) {
+  void set(Index i) {
 #ifndef NDEBUG
     built = false;
     assert(i < n);
@@ -177,7 +177,7 @@ public:
     Index b = i % kSize;
     backets[a].set(b);
   }
-  inline bool get(Index i) const {
+  bool get(Index i) const {
 #ifndef NDEBUG
     assert(i < n);
 #endif
@@ -185,7 +185,7 @@ public:
     Index b = i % kSize;
     return backets[a].get(b);
   }
-  inline Index rank1(Index i) const {
+  Index rank1(Index i) const {
 #ifndef NDEBUG
     assert(built);
     assert(i < n);
@@ -194,7 +194,7 @@ public:
     Index b = i % kSize;
     return S[a] + backets[a].rank(b);
   }
-  inline Index rank0(Index i) const {
+  Index rank0(Index i) const {
 #ifndef NDEBUG
     assert(built);
     assert(i < n);
@@ -203,8 +203,8 @@ public:
     Index b = i % kSize;
     return kSize * a - S[a] + b - backets[a].rank(b);
   }
-  inline Index rank(bool b, Index i) { return b ? rank1(i) : rank0(i); }
-  inline Index select1(Index r) const {
+  Index rank(bool b, Index i) { return b ? rank1(i) : rank0(i); }
+  Index select1(Index r) const {
 #ifndef NDEBUG
     assert(built);
     assert(r <= rank1(n - 1));
@@ -226,7 +226,7 @@ public:
     r -= S[L];
     return ret + backet.select1(r);
   }
-  inline Index select0(Index r) const {
+  Index select0(Index r) const {
 #ifndef NDEBUG
     assert(built);
     assert(r <= rank0(n - 1));
@@ -248,7 +248,7 @@ public:
     r -= kSize * L - S[L];
     return ret + backet.select0(r);
   }
-  inline Index select(bool b, Index r) const {
+  Index select(bool b, Index r) const {
     return b ? select1(r) : select0(r);
   }
 }; // class BitVector
