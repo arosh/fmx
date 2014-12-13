@@ -93,7 +93,7 @@ public:
     while (R - L > 1) {
       Index M = (L + R) / 2;
       uint64_t mask = (1ULL << M) - 1;
-      if (__builtin_popcountll(BB & mask) <= r) {
+      if (std::__pop_count(BB & mask) <= r) {
         L = M;
       } else {
         R = M;
@@ -127,7 +127,7 @@ public:
     while (R - L > 1) {
       Index M = (L + R) / 2;
       uint64_t mask = (1ULL << M) - 1;
-      if (M - __builtin_popcountll(BB & mask) <= r) {
+      if (M - std::__pop_count(BB & mask) <= r) {
         L = M;
       } else {
         R = M;
