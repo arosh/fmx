@@ -165,42 +165,44 @@ int main(int argc, char *argv[]) {
   string cfname = parser.get<string>("config");
   vector<vector<string>> datasets = read_datasets(cfname);
 
-  vector<uint8_t> SV;
-  for (iter(datasets) i = 0; i < datasets.size(); ++i) {
-    SV.insert(SV.end(), datasets[i][0].begin(), datasets[i][0].end());
-    SV.push_back('\n');
-  }
-  SV.push_back('\0');
-
-  vector<index_type> SA(SV.size());
-  saisxx(SV.begin(), SA.begin(), (index_type)SV.size());
-
   WaveletMatrix wt_text(8);
-  {
-    vector<uint8_t> TV = bwt(SV);
-    wt_text.init(TV);
-  }
-
   WaveletMatrix wt_freq(9);
   {
-    vector<uint64_t> array(SV.size());
-    uint64_t sum = 0;
+    vector<uint8_t> SV;
     for (iter(datasets) i = 0; i < datasets.size(); ++i) {
-      for (iter(datasets[i][0]) j = 0; j < datasets[i][0].size(); ++j) {
-        array[sum] = i;
+      SV.insert(SV.end(), datasets[i][0].begin(), datasets[i][0].end());
+      SV.push_back('\n');
+    }
+    SV.push_back('\0');
+
+    vector<index_type> SA(SV.size());
+    saisxx(SV.begin(), SA.begin(), (index_type)SV.size());
+
+    {
+      vector<uint8_t> TV = bwt(SV);
+      wt_text.init(TV);
+    }
+
+    {
+      vector<uint64_t> array(SV.size());
+      uint64_t sum = 0;
+      for (iter(datasets) i = 0; i < datasets.size(); ++i) {
+        for (iter(datasets[i][0]) j = 0; j < datasets[i][0].size(); ++j) {
+          array[sum] = i;
+          ++sum;
+        }
+        array[sum] = datasets.size();
         ++sum;
       }
       array[sum] = datasets.size();
       ++sum;
-    }
-    array[sum] = datasets.size();
-    ++sum;
 
-    vector<uint64_t> rev(SV.size());
-    for (iter(SV) i = 0; i < SV.size(); ++i) {
-      rev[i] = array[SA[i]];
+      vector<uint64_t> rev(SV.size());
+      for (iter(SV) i = 0; i < SV.size(); ++i) {
+        rev[i] = array[SA[i]];
+      }
+      wt_freq.init(rev);
     }
-    wt_freq.init(rev);
   }
 
   if (parser.exist("query")) {
