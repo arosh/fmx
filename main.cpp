@@ -100,7 +100,7 @@ pair<index_type, index_type> fm_index(const wat_array::WatArray &wat,
   return make_pair(sp, ep);
 }
 
-vector<vector<string> > read_datasets(const string &cfname) {
+vector<vector<string>> read_datasets(const string &cfname) {
   ifstream ifs(cfname);
 
   if (!ifs) {
@@ -117,7 +117,7 @@ vector<vector<string> > read_datasets(const string &cfname) {
   }
 
   picojson::array &array = json.get<picojson::array>();
-  vector<vector<string> > ret;
+  vector<vector<string>> ret;
   for (const picojson::value &it : array) {
     picojson::object book = it.get<picojson::object>();
     string filename = book["filename"].get<string>();
@@ -127,6 +127,22 @@ vector<vector<string> > read_datasets(const string &cfname) {
     ret.emplace_back(vs);
   }
   return ret;
+}
+
+void search(const string &query, const int num,
+            const wat_array::WatArray &wt_text,
+            const wat_array::WatArray &wt_freq,
+            const vector<vector<string>> &datasets) {
+  auto spep = fm_index(wt_text, query);
+  vector<wat_array::ListResult> res;
+  wt_freq.ListModeRange(0, numeric_limits<uint64_t>::max(), spep.first,
+                        spep.second, num, res);
+  for (const auto &r : res) {
+    if (r.c == datasets.size())
+      continue;
+    cout << r.freq << '\t' << datasets[r.c][1] << '\t' << datasets[r.c][2]
+         << endl;
+  }
 }
 
 int main(int argc, char *argv[]) {
@@ -143,8 +159,13 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
+  if (parser.exist("query") == false && parser.exist("interact") == false) {
+    cerr << "you should enable --query or --interact" << endl;
+    exit(EXIT_FAILURE);
+  }
+
   string cfname = parser.get<string>("config");
-  vector<vector<string> > datasets = read_datasets(cfname);
+  vector<vector<string>> datasets = read_datasets(cfname);
 
   vector<uint8_t> SV;
   for (iter(datasets) i = 0; i < datasets.size(); ++i) {
@@ -152,14 +173,6 @@ int main(int argc, char *argv[]) {
     SV.push_back('\n');
   }
   SV.push_back('\0');
-
-  string q;
-  if (parser.exist("query")) {
-    q = parser.get<string>("query");
-  } else {
-    cout << "query> ";
-    cin >> q;
-  }
 
   vector<index_type> SA(SV.size());
   saisxx(SV.begin(), SA.begin(), (index_type)SV.size());
@@ -192,22 +205,20 @@ int main(int argc, char *argv[]) {
     wt_freq.Init(rev);
   }
 
-next:
-  auto spep = fm_index(wt_text, q);
-  vector<wat_array::ListResult> res;
-  wt_freq.ListModeRange(0, numeric_limits<uint64_t>::max(), spep.first,
-                        spep.second, parser.get<int>("number"), res);
-  for (const auto &r : res) {
-    if (r.c == datasets.size())
-      continue;
-    cout << r.freq << '\t' << datasets[r.c][1] << '\t' << datasets[r.c][2]
-         << endl;
+  if (parser.exist("query")) {
+    string q = parser.get<string>("query");
+    search(q, parser.get<int>("number"), wt_text, wt_freq, datasets);
   }
 
   if (parser.exist("interact")) {
-    cout << "query> ";
-    if (cin >> q) {
-      goto next;
+    while (true) {
+      cout << "query> ";
+      string q;
+      if (cin >> q) {
+        search(q, parser.get<int>("number"), wt_text, wt_freq, datasets);
+      } else {
+        break;
+      }
     }
   }
 }
