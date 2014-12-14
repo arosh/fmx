@@ -1,6 +1,6 @@
 .PHONY: all clean
 
-CXXFLAGS=-std=c++11 -Wall -Wextra -Wshadow -O2 -march=native -g
+CXXFLAGS=-std=c++11 -Wall -Wextra -Wshadow -O2 -march=native -g -pthread
 
 LINK.o=$(LINK.cpp)
 
@@ -8,7 +8,7 @@ all: main mainmain bwt test
 
 main: main.o wat_array/wat_array.o wat_array/bit_array.o
 
-mainmain: mainmain.o wat_array/wat_array.o wat_array/bit_array.o
+mainmain: mainmain.o wat_array/wat_array.o wat_array/bit_array.o module.o
 
 bwt: bwt.o wat_array/wat_array.o wat_array/bit_array.o
 
