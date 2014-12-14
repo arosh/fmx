@@ -12,19 +12,21 @@
 #include "bit_operation.h"
 
 class WaveletMatrix {
+public:
   typedef uint64_t Index;
+private:
   Index n;
   const int log_sigma;
   std::vector<BitVector> BV;
   std::vector<Index> Z;
 
-  Index down0(int depth, Index pos) {
+  Index down0(int depth, Index pos) const {
     if (pos == n)
       return Z[depth];
     return BV[depth].rank0(pos);
   }
 
-  Index down1(int depth, Index pos) {
+  Index down1(int depth, Index pos) const {
     if (pos == n)
       return n;
     return Z[depth] + BV[depth].rank1(pos);
@@ -32,7 +34,7 @@ class WaveletMatrix {
 
   template <class T>
   std::pair<Index, Index> equal_range(const T c, const Index st,
-                                      const Index en) {
+                                      const Index en) const {
     Index L = st, R = en;
     for (int i = 0; i < log_sigma; ++i) {
       if (!bit_operation::get_bit(c, i)) {
@@ -50,6 +52,9 @@ public:
   WaveletMatrix(const int log_sigma_) : log_sigma(log_sigma_), Z(log_sigma_) {}
 
   std::vector<BitVector> BV_() { return BV; }
+  Index length() const {
+    return n;
+  }
 
   template <class V> void init(const V &vec) {
     n = vec.size();
@@ -85,11 +90,11 @@ public:
     }
   }
 
-  template <class T> Index rank_lt(const T c) {
+  template <class T> Index rank_lt(const T c) const {
     return equal_range(c, 0, n).first;
   }
 
-  template <class T> Index rank(const T c, const Index pos) {
+  template <class T> Index rank(const T c, const Index pos) const {
     const auto eq_range = equal_range(c, 0, pos);
     return eq_range.second - eq_range.first;
   }
@@ -115,7 +120,7 @@ public:
   // 本当にそうでしょうか？
   template <class T>
   std::vector<std::pair<Index, T>> topk(const Index st, const Index en,
-                                        const Index k) {
+                                        const Index k) const {
     using namespace std;
     assert(st <= en);
     vector<pair<Index, T>> ret;

@@ -4,9 +4,11 @@ CXXFLAGS=-std=c++11 -Wall -Wextra -Wshadow -O2 -march=native -g
 
 LINK.o=$(LINK.cpp)
 
-all: main bwt test
+all: main mainmain bwt test
 
 main: main.o wat_array/wat_array.o wat_array/bit_array.o
+
+mainmain: mainmain.o wat_array/wat_array.o wat_array/bit_array.o
 
 bwt: bwt.o wat_array/wat_array.o wat_array/bit_array.o
 
