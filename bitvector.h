@@ -52,7 +52,7 @@ public:
     Index cur = 0;
     for (int i = 0; i < kSizeL; ++i) {
       S[i] = cur;
-      cur += std::__pop_count(B[i]);
+      cur += __builtin_popcountll(B[i]);
     }
     return cur;
   }
@@ -64,13 +64,13 @@ public:
     const Index a = i / kSizeS;
     const Index b = i % kSizeS;
     const uint64_t mask = (1ULL << b) - 1;
-    const uint8_t r = S[a] + std::__pop_count(B[a] & mask);
+    const uint8_t r = S[a] + __builtin_popcountll(B[a] & mask);
     return r;
   }
   Index select1(uint8_t r) const {
 #ifndef NDEBUG
     assert(built);
-    assert(r < S[kSizeL - 1] + std::__pop_count(B[kSizeL - 1]));
+    assert(r < S[kSizeL - 1] + __builtin_popcountll(B[kSizeL - 1]));
 #endif
     Index L, R;
 
@@ -93,7 +93,7 @@ public:
     while (R - L > 1) {
       Index M = (L + R) / 2;
       uint64_t mask = (1ULL << M) - 1;
-      if (std::__pop_count(BB & mask) <= r) {
+      if (__builtin_popcountll(BB & mask) <= r) {
         L = M;
       } else {
         R = M;
@@ -127,7 +127,7 @@ public:
     while (R - L > 1) {
       Index M = (L + R) / 2;
       uint64_t mask = (1ULL << M) - 1;
-      if (M - std::__pop_count(BB & mask) <= r) {
+      if (M - __builtin_popcountll(BB & mask) <= r) {
         L = M;
       } else {
         R = M;
