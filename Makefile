@@ -4,7 +4,7 @@ CXXFLAGS=-std=c++11 -Wall -Wextra -Wshadow -O2 -march=native -g -pthread
 
 LINK.o=$(LINK.cpp)
 
-all: main mainmain bwt test
+all: main mainmain bwt test preprocess
 
 main: main.o wat_array/wat_array.o wat_array/bit_array.o
 
@@ -18,6 +18,9 @@ test: bitvector.o wavelet_matrix.o gtest/gtest_main.o gtest/gtest-all.o
 bitvector.o: bitvector.cpp bitvector.h
 
 wavelet_matrix.o: wavelet_matrix.cpp wavelet_matrix.h bitvector.h
+
+preprocess: preprocess.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
 clean:
 	$(RM) *.o wat_array/*.o gtest/*.o main bwt test
