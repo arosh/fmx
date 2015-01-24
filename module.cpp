@@ -26,12 +26,12 @@ typedef int64_t index_type;
 
 vector<uint8_t> bwt(const vector<uint8_t> &S) {
   vector<uint8_t> T(S.size());
+  T.shrink_to_fit();
   vector<index_type> tmp(S.size());
 
   vector<uint8_t> &S2 = const_cast<vector<uint8_t> &>(S);
 
   saisxx_bwt(S2.begin(), T.begin(), tmp.begin(), (index_type)S.size());
-
   return T;
 }
 
@@ -88,7 +88,7 @@ void show_string_in_hex(const string &s) {
 }
 
 bool is_utf8_start_char(unsigned char c) {
-  // 2バイト目以降は先頭ビットが10である
+  // 2バイト目以降は先頭ビットが0b10である
   if ((c >> 6) == 2)
     return false;
   return true;
@@ -132,8 +132,10 @@ vector<vector<string>> read_datasets(const string &cfname) {
     string title = book["title"].get<string>();
     string author = book["author"].get<string>();
     vector<string> vs = { read_oneline(filename), title, author };
-    ret.emplace_back(vs);
+    vs.shrink_to_fit();
+    ret.emplace_back(std::move(vs));
   }
+  ret.shrink_to_fit();
   return ret;
 }
 
@@ -147,7 +149,8 @@ vector<string> search_(const string &query, const int num) {
 
   vector<string> ret;
   for (const auto &r : res) {
-    if (r.second == datasets.size())
+    // r.second == datasets.size() if datasets[:][0][r.second] == '\n'
+    if (r.second == (int)datasets.size())
       continue;
     ostringstream oss;
     oss << r.first << '\t' << datasets[r.second][1] << '\t' << datasets[r.second][2];
@@ -159,16 +162,86 @@ vector<string> search_(const string &query, const int num) {
 #ifdef PYTHON_MODULE
 py::list search(const string &query, const int num) {
   py::list ret;
-  auto v = search_(query, num);
+  vector<string> v = search_(query, num);
   for(const string &item : v) {
     ret.append(py::str(item).decode("utf_8"));
   }
   return ret;
 }
+
+// queryでtop(num)をsearchしたときにk番目に現れる文書のl番目の出現場所の前後のlen文字を取得する
+py::api::object description(
+    const string &query, const int num,
+    const int k, const int l, const int len) {
+  // 文書のIDを取得する
+  auto spep = fm_index(wt_text, query);
+  vector<pair<WaveletMatrix::Index, int>> res = wt_freq.topk<int>(spep.first, spep.second, num);
+  for(int i = 0; i < res.size(); ++i) {
+    if(res[i].second == datasets.size()) {
+      res.erase(res.begin() + i);
+      --i;
+    }
+  }
+  const int d = res[k].second;
+  cerr << "d = " << d << endl;
+
+  // 文書の場所を取得する
+  // suffix arrayの実体が必要？
+  WaveletMatrix::Index p = wt_freq.select(d, l + wt_freq.rank(d, spep.first));
+  cerr << "p = " << p << endl;
+
+  vector<WaveletMatrix::Index> V(datasets.size());
+  {
+    WaveletMatrix::Index s = 0;
+    for(iter(datasets) i = 0; i < datasets.size(); ++i) {
+      V[i] = s;
+      s += (datasets[i][0].size() + 1);
+    }
+  }
+  p -= V[d];
+  cerr << "p = " << p << endl;
+
+  const int prepost = (len - query.length()) / 2;
+
+  WaveletMatrix::Index st = p;
+  for(int i = 0; i < prepost && st > 0; ++i) {
+    --st;
+    uint8_t c = datasets[d][0][st];
+    if(c == '\n') {
+      ++st;
+      break;
+    }
+  }
+  cerr << "st = " << st << endl;
+  while(is_utf8_start_char(datasets[d][0][st]) == false) ++st;
+  cerr << "st = " << st << endl;
+
+  WaveletMatrix::Index en = p + query.length();
+  for(int i = 0; i < prepost && st + 1 < datasets[d][0].size(); ++i) {
+    ++en;
+    uint8_t c = datasets[d][0][en];
+    if(c == '\n') {
+      break;
+    }
+  }
+  cerr << "en = " << en << endl;
+  while(is_utf8_start_char(datasets[d][0][en]) == false) --en;
+  cerr << "en = " << en << endl;
+
+  string ret;
+  for(WaveletMatrix::Index i = st; i < en; ++i) {
+    ret.push_back(wt_text.access<uint8_t>(i));
+  }
+
+  show_string_in_hex(ret);
+
+  return py::str(ret).decode("utf_8");
+}
 #endif
 
 void init(const string &config) {
   datasets = read_datasets(config);
+
   {
     vector<uint8_t> SV;
     for (iter(datasets) i = 0; i < datasets.size(); ++i) {
@@ -176,17 +249,21 @@ void init(const string &config) {
       SV.push_back('\n');
     }
     SV.push_back('\0');
+    SV.shrink_to_fit();
 
     vector<index_type> SA(SV.size());
     saisxx(SV.begin(), SA.begin(), (index_type)SV.size());
+    SA.shrink_to_fit();
 
     {
       vector<uint8_t> TV = bwt(SV);
+      TV.shrink_to_fit();
       wt_text.init(TV);
     }
 
     {
       vector<uint64_t> array(SV.size());
+      array.shrink_to_fit();
       uint64_t sum = 0;
       for (iter(datasets) i = 0; i < datasets.size(); ++i) {
         for (iter(datasets[i][0]) j = 0; j < datasets[i][0].size(); ++j) {
@@ -200,6 +277,7 @@ void init(const string &config) {
       ++sum;
 
       vector<uint64_t> rev(SV.size());
+      rev.shrink_to_fit();
       for (iter(SV) i = 0; i < SV.size(); ++i) {
         rev[i] = array[SA[i]];
       }
@@ -212,5 +290,6 @@ void init(const string &config) {
 BOOST_PYTHON_MODULE(fmx) {
   boost::python::def("init", &init);
   boost::python::def("search", &::search);
+  boost::python::def("description", &description);
 }
 #endif

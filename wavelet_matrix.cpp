@@ -40,6 +40,20 @@ TEST(WaveletMatrixTest, InitTest) {
   }
 }
 
+TEST(WaveletMatrixTest, AccessTest) {
+  vector<uint8_t> ary = { 2, 0, 0, 3, 1, 2, 2, 1 };
+  WaveletMatrix wm(8);
+  wm.init(ary);
+  EXPECT_EQ(2, wm.access<uint8_t>(0));
+  EXPECT_EQ(0, wm.access<uint8_t>(1));
+  EXPECT_EQ(0, wm.access<uint8_t>(2));
+  EXPECT_EQ(3, wm.access<uint8_t>(3));
+  EXPECT_EQ(1, wm.access<uint8_t>(4));
+  EXPECT_EQ(2, wm.access<uint8_t>(5));
+  EXPECT_EQ(2, wm.access<uint8_t>(6));
+  EXPECT_EQ(1, wm.access<uint8_t>(7));
+}
+
 TEST(WaveletMatrixTest, RankLessThanTest) {
   {
     vector<uint8_t> ary = { 2, 0, 0, 3, 1, 2, 2, 1 };
@@ -101,6 +115,20 @@ TEST(WaveletMatrixTest, RankTest) {
 
     EXPECT_EQ(0, wm.rank(6, 7));
   }
+}
+
+TEST(WaveletMatrixTest, SelectTest) {
+  vector<uint8_t> ary = { 2, 0, 0, 3, 1, 2, 2, 1 };
+  WaveletMatrix wm(8);
+  wm.init(ary);
+  EXPECT_EQ(0, wm.select(2, 0));
+  EXPECT_EQ(1, wm.select(0, 0));
+  EXPECT_EQ(2, wm.select(0, 1));
+  EXPECT_EQ(3, wm.select(3, 0));
+  EXPECT_EQ(4, wm.select(1, 0));
+  EXPECT_EQ(5, wm.select(2, 1));
+  EXPECT_EQ(6, wm.select(2, 2));
+  EXPECT_EQ(7, wm.select(1, 1));
 }
 
 TEST(WaveletMatrixTest, TopKTest) {

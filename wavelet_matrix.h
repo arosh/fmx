@@ -21,12 +21,14 @@ private:
   std::vector<Index> Z;
 
   Index down0(int depth, Index pos) const {
+    assert(pos <= n);
     if (pos == n)
       return Z[depth];
     return BV[depth].rank0(pos);
   }
 
   Index down1(int depth, Index pos) const {
+    assert(pos <= n);
     if (pos == n)
       return n;
     return Z[depth] + BV[depth].rank1(pos);
@@ -35,6 +37,9 @@ private:
   template <class T>
   std::pair<Index, Index> equal_range(const T c, const Index st,
                                       const Index en) const {
+    assert(0 <= st && st <= n);
+    assert(0 <= en && en <= n);
+    assert(st <= en);
     Index L = st, R = en;
     for (int i = 0; i < log_sigma; ++i) {
       if (!bit_operation::get_bit(c, i)) {
@@ -69,25 +74,39 @@ public:
       }
     }
 
-    {
-      V cur = vec;
-      for (int d = 0; d < log_sigma; ++d) {
-        V next(n);
-        Index zero_pos = 0;
-        Index one_pos = Z[d];
-
-        for (Index i = 0; i < n; ++i) {
-          if (bit_operation::get_bit(cur[i], d)) {
-            BV[d].set(i);
-            next[one_pos++] = cur[i];
-          } else {
-            next[zero_pos++] = cur[i];
-          }
+    V cur = vec;
+    for (int d = 0; d < log_sigma; ++d) {
+      V next(n);
+      Index zero_pos = 0;
+      Index one_pos = Z[d];
+      for (Index i = 0; i < n; ++i) {
+        if (bit_operation::get_bit(cur[i], d)) {
+          BV[d].set(i);
+          next[one_pos++] = cur[i];
+        } else {
+          next[zero_pos++] = cur[i];
         }
-        BV[d].build();
-        cur = next;
+      }
+      BV[d].build();
+      cur.swap(next);
+    }
+  }
+
+  template <class T> T access(const Index pos) const {
+    assert(pos < n);
+    T ret = 0;
+    Index p = pos;
+    for(int d = 0; d < log_sigma; ++d) {
+      bool b = BV[d].get(p);
+      if(!b) {
+        p = BV[d].rank0(p);
+      }
+      else {
+        ret |= (1ULL << d);
+        p = Z[d] + BV[d].rank1(p);
       }
     }
+    return ret;
   }
 
   template <class T> Index rank_lt(const T c) const {
@@ -97,6 +116,27 @@ public:
   template <class T> Index rank(const T c, const Index pos) const {
     const auto eq_range = equal_range(c, 0, pos);
     return eq_range.second - eq_range.first;
+  }
+
+  template <class T> Index select(const T c, const Index i) const {
+    assert(i < rank(c, n));
+    Index p = rank_lt(c) + i;
+    for(int d = log_sigma - 1; d >= 0; --d) {
+      bool b = bit_operation::get_bit(c, d);
+      if(!b) {
+        if(p == n)
+          p = Z[d] - 1;
+        else
+          p = BV[d].select0(p);
+      }
+      else {
+        if(p == n)
+          p = n - 1;
+        else
+          p = BV[d].select1(p - Z[d]);
+      }
+    }
+    return p;
   }
 
   template <class T> struct RangeNode {
