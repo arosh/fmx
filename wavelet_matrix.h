@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cassert>
 
+#include <iostream>
 #include <vector>
 #include <queue>
 #include <utility>

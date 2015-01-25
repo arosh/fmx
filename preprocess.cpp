@@ -138,9 +138,9 @@ int main(int argc, char * argv[]) {
       for(size_t i = 0; i < books[id].content.size(); ++i) {
         tmp[cur++] = id;
       }
-      tmp[cur++] = id; // for '\n'
+      tmp[cur++] = books.size(); // for '\n'
     }
-    tmp[cur++] = books.size() - 1; // for '\0'
+    tmp[cur++] = books.size(); // for '\0'
     for(size_t i = 0; i < seqLen; ++i) {
       UV[i] = tmp[SA[i]];
     }

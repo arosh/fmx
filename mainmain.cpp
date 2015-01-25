@@ -6,7 +6,7 @@
 
 using namespace std;
 
-extern void init(const string &config);
+extern void init();
 extern vector<string> search_(const string &query, const int num);
 
 int main(int argc, char *argv[]) {
@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
   }
 
   string cfname = parser.get<string>("config");
-  init(cfname);
+  init();
 
   if (parser.exist("query")) {
     string q = parser.get<string>("query");

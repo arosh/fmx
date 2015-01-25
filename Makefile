@@ -1,6 +1,7 @@
 .PHONY: all clean
 
 CXXFLAGS=-std=c++11 -Wall -Wextra -Wshadow -O2 -march=native -g -pthread
+LDLIBS=-lmsgpack
 
 LINK.o=$(LINK.cpp)
 
