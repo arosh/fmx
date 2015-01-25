@@ -14,27 +14,50 @@ $(function() {
   function changeEventHandler(value) {
     $.getJSON('search/' + value, null, function(data) {
       var items = [];
+      items.push('<thead>');
       items.push('<tr><th>ヒット数</th><th>図書名</th><th>著者名</th><th>-</th></tr>');
+      items.push('</thead>');
+      items.push('<tbody>');
       $.each(data.result, function(index, value) {
         items.push('<tr><td>' + value.count + '</td><td>' + value.title + '</td><td>' + value.author + '</td><td><button class="btn verbose">詳細</button></td></tr>');
       });
-      $('table#tablearea').html(items.join(''));
+      items.push('</tbody>');
+      $('table#result').html(items.join(''));
       $('button.verbose').on('click', function() {
         var k = $('button.verbose').index(this);
-        console.log('button index = ' + k);
         var word = $('input#query').val();
-        console.log(word);
-        console.dir($('table#tablearea').find('tr:eq(' + (k + 1) + ')').html());
-        var count = parseInt($('table#tablearea').find('tr:eq(' + (k + 1) + ')').find('td:eq(0)').text());
-        console.log(count);
+        $('table#result tbody tr').each(function(index, value) {
+          if(index == k) {
+            $(this).addClass('info');
+          }
+          else {
+            $(this).removeClass('info');
+          }
+        });
+        var count = parseInt($('table#result tbody').find('tr:eq(' + k + ')').find('td:eq(0)').text());
         var get = Math.min(count, 20)
-        var items = []
+        var requests = []
         for(var i = 0; i < get; ++i) {
-          $.get('description/' + k + '/' + i + '/' + word).done(function(data) {
-            items.push(data);
-          });
+          requests.push($.get('description/' + k + '/' + i + '/' + word));
         }
-        console.dir(items);
+        $.when.apply($, requests).done(function() {
+          if (requests.length == 1) {
+            var data = arguments[0];
+            $('table#result2').html('<tr><td>' + data + '</td></tr>');
+          }
+          else {
+            var items = []
+            for(var i = 0; i < arguments.length; ++i) {
+              var data = arguments[i][0];
+              items.push('<tr><td>' + data + '</td></tr>');
+            }
+            $('table#result2').html(items.join(''));
+          }
+          var regexp = new RegExp(word, 'g');
+          $('table#result2 tr').each(function() {
+            $(this).html($(this).html().replace(regexp, '<span style="font-weight: bold; background-color: #d9edf7;">' + word + '</span>'));
+          });
+        });
       });
     });
   }

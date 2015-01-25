@@ -24,16 +24,16 @@ def search_route(word):
 @app.route('/description/<int:k>/<int:i>/<path:word>')
 def description_route(k, i, word):
     bytestring = word.encode('utf_8')
-    return fmx.description(bytestring, 20, k, i, 100)
+    return fmx.description(bytestring, 20, k, i, 300)
 
 def jsonify_line(line):
     count, title, author = line.split('\t')
     return { 'count': count, 'title': title, 'author': author }
 
 if __name__ == '__main__':
-    # 外部公開するときはhost='0.0.0.0'
     print('init fmx ... ', end='', file=sys.stderr)
-    fmx.init('metadata.json'.encode('utf_8'))
+    fmx.init()
     print('OK', file=sys.stderr)
 
+    # 外部公開するときはhost='0.0.0.0'
     app.run(debug=True, host='0.0.0.0')
