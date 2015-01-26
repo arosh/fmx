@@ -14,9 +14,16 @@
 <body>
   <div class="container">
     <h1>青空文庫の全文検索</h1>
-    <div class="row">
-      <label>検索文字列: <input type="text" id="query"></label>
+    <div class="row-fluid">
       <div class="span6">
+        <form class="form-horizontal">
+          <div class="control-group">
+            <label class="control-label">検索文字列</label>
+            <div class="controls">
+              <input type="text" id="query"></label>
+            </div>
+          </div>
+        </form>
         <table id="result" class="table table-condensed table-hover"></table>
       </div>
       <div class="span6">

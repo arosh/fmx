@@ -24,7 +24,7 @@ def search_route(word):
 @app.route('/description/<int:k>/<int:i>/<path:word>')
 def description_route(k, i, word):
     bytestring = word.encode('utf_8')
-    return fmx.description(bytestring, 20, k, i, 300)
+    return fmx.description(bytestring, 20, k, i, 280)
 
 def jsonify_line(line):
     count, title, author = line.split('\t')

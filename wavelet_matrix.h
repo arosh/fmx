@@ -65,31 +65,36 @@ public:
   template <class V> void init(const V &vec) {
     n = vec.size();
     BV.reserve(log_sigma);
-    std::fill(Z.begin(), Z.end(), 0ULL);
-    for (int d = 0; d < log_sigma; ++d) {
+    for(int d = 0; d < log_sigma; ++d) {
       BV.emplace_back(n);
-      for (Index i = 0; i < n; ++i) {
-        if (!bit_operation::get_bit(vec[i], d)) {
+    }
+    Z.assign(log_sigma, 0ULL);
+
+    const size_t alphaSize = size_t(1) << log_sigma;
+    std::vector<size_t> offset(alphaSize, 0);
+    for(int d = 0; d < log_sigma; ++d) {
+      const size_t mask = ((size_t(1) << d) - 1);
+      for (size_t i = 0; i < n; ++i) {
+        if(bit_operation::get_bit(vec[i], d)) {
+          BV[d].set(offset[vec[i] & mask]);
+        }
+        else {
           ++Z[d];
         }
-      }
-    }
-
-    V cur = vec;
-    for (int d = 0; d < log_sigma; ++d) {
-      V next(n);
-      Index zero_pos = 0;
-      Index one_pos = Z[d];
-      for (Index i = 0; i < n; ++i) {
-        if (bit_operation::get_bit(cur[i], d)) {
-          BV[d].set(i);
-          next[one_pos++] = cur[i];
-        } else {
-          next[zero_pos++] = cur[i];
-        }
+        ++offset[vec[i] & mask];
       }
       BV[d].build();
-      cur.swap(next);
+      offset.assign(alphaSize, 0);
+      const size_t mask2 = (size_t(1) << (d + 1)) - 1;
+      for (size_t i = 0; i < n; ++i) {
+        ++offset[vec[i] & mask2];
+      }
+      size_t cur = 0;
+      for(size_t c = 0; c < alphaSize; ++c) {
+        size_t tmp = offset[c];
+        offset[c] = cur;
+        cur += tmp;
+      }
     }
   }
 

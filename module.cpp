@@ -176,15 +176,23 @@ void unpack(T & ret, const char * fname) {
 }
 
 void init() {
-  vector<uint8_t> bwtVec;
-  unpack(bwtVec, "msg/bwt.msg");
-  wt_text.init(bwtVec);
-
-  vector<uint16_t> freqVec;
-  unpack(freqVec, "msg/book_id.msg");
-  wt_freq.init(freqVec);
-
   unpack(datasets, "msg/book.msg");
+  for (auto && book : datasets) {
+    book.content.clear();
+    book.content.shrink_to_fit();
+  }
+
+  {
+    vector<uint8_t> bwtVec;
+    unpack(bwtVec, "msg/bwt.msg");
+    wt_text.init(bwtVec);
+  }
+
+  {
+    vector<uint16_t> freqVec;
+    unpack(freqVec, "msg/book_id.msg");
+    wt_freq.init(freqVec);
+  }
 
   bound.resize(256);
   for(uint64_t c = 0; c < 256; ++c) {
