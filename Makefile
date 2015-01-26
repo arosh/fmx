@@ -5,13 +5,7 @@ LDLIBS=-lmsgpack
 
 LINK.o=$(LINK.cpp)
 
-all: main mainmain bwt test preprocess
-
-main: main.o wat_array/wat_array.o wat_array/bit_array.o
-
-mainmain: mainmain.o wat_array/wat_array.o wat_array/bit_array.o module.o
-
-bwt: bwt.o wat_array/wat_array.o wat_array/bit_array.o
+all: test preprocess
 
 test: bitvector.o wavelet_matrix.o gtest/gtest_main.o gtest/gtest-all.o
 	$(LINK.o) $^ -o $@
@@ -24,4 +18,4 @@ preprocess: preprocess.o
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 clean:
-	$(RM) *.o wat_array/*.o gtest/*.o main bwt test
+	$(RM) *.o gtest/*.o test preprocess
