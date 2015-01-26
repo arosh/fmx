@@ -15,7 +15,7 @@ $(function() {
     $.getJSON('search/' + value, null, function(data) {
       var items = [];
       items.push('<thead>');
-      items.push('<tr><th>ヒット数</th><th>図書名</th><th>著者名</th><th>-</th></tr>');
+      items.push('<tr><th>出現数</th><th>図書名</th><th>著者名</th><th>-</th></tr>');
       items.push('</thead>');
       items.push('<tbody>');
       $.each(data.result, function(index, value) {
@@ -55,7 +55,7 @@ $(function() {
           }
           var regexp = new RegExp(word, 'g');
           $('table#result2 tr').each(function() {
-            $(this).html($(this).html().replace(regexp, '<span style="font-weight: bold; background-color: #d9edf7;">' + word + '</span>'));
+            $(this).html($(this).html().replace(regexp, '<span style="font-weight: bold; color: #fff; background-color: #333;">' + word + '</span>'));
           });
         });
       });
